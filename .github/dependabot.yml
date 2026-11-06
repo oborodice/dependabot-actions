@@ -1,6 +1,7 @@
 version: 2
 updates:
   - package-ecosystem: "github-actions"
+    # "/" only covers .github/workflows; composite actions need their own entries
     directories:
       - "/"
       - "/auto-merge"
