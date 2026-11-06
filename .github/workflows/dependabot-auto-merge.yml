@@ -29,3 +29,5 @@ jobs:
       # Uses the PR's own version of the action, so an update is verified by merging itself
       - name: Auto-merge
         uses: ./auto-merge
+        with:
+          update-types: patch,minor
