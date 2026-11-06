@@ -30,7 +30,7 @@ done
 type="${UPDATE_TYPE#version-update:semver-}"
 for t in "${allowed[@]}"; do
   if [[ "$t" == "$type" ]]; then
-    gh pr merge --auto "--$MERGE_METHOD" "$PR_URL"
+    gh pr merge "--$MERGE_METHOD" "$PR_URL"
     exit 0
   fi
 done

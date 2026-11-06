@@ -34,7 +34,7 @@ merge() {
 @test "merge: merges an allowed update type" {
   merge
   [ "$status" -eq 0 ]
-  [ "$(cat "$GH_LOG")" = "pr merge --auto --merge $PR_URL" ]
+  [ "$(cat "$GH_LOG")" = "pr merge --merge $PR_URL" ]
 }
 
 @test "merge: uses the given merge method" {
@@ -43,7 +43,7 @@ merge() {
     rm -f "$GH_LOG"
     MERGE_METHOD=$method merge
     [ "$status" -eq 0 ]
-    [ "$(cat "$GH_LOG")" = "pr merge --auto --$method $PR_URL" ]
+    [ "$(cat "$GH_LOG")" = "pr merge --$method $PR_URL" ]
   done
 }
 
