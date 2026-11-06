@@ -1,7 +1,12 @@
 #!/usr/bin/env bash
 set -eo pipefail
 
-# Expects: PR_AUTHOR, GITHUB_OUTPUT
+# Expects: PR_NUMBER, PR_AUTHOR, GITHUB_OUTPUT
+
+if [[ -z "$PR_NUMBER" ]]; then
+  echo "::error::This action must be triggered by a pull request event"
+  exit 1
+fi
 
 if [[ "$PR_AUTHOR" == "dependabot[bot]" ]]; then
   echo "dependabot=true" >> "$GITHUB_OUTPUT"
