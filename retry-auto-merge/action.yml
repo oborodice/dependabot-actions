@@ -1,0 +1,38 @@
+name: Retry Dependabot auto-merge
+description: Re-run a failed Dependabot auto-merge workflow run while its PR is still open.
+
+inputs:
+  github-token:
+    description: Token used to check the PR and re-run the workflow.
+    required: false
+    default: ${{ github.token }}
+  max-retries:
+    description: Maximum number of re-runs after the first attempt.
+    required: false
+    default: "3"
+  min-delay:
+    description: Minimum seconds to wait before re-running.
+    required: false
+    default: "120"
+  max-delay:
+    description: Maximum seconds to wait before re-running.
+    required: false
+    default: "300"
+
+runs:
+  using: composite
+  steps:
+    - name: Retry failed workflow
+      shell: bash
+      env:
+        GH_TOKEN: ${{ inputs.github-token }}
+        REPO: ${{ github.repository }}
+        EVENT_NAME: ${{ github.event_name }}
+        CONCLUSION: ${{ github.event.workflow_run.conclusion }}
+        RUN_ID: ${{ github.event.workflow_run.id }}
+        RUN_ATTEMPT: ${{ github.event.workflow_run.run_attempt }}
+        HEAD_BRANCH: ${{ github.event.workflow_run.head_branch }}
+        MAX_RETRIES: ${{ inputs.max-retries }}
+        MIN_DELAY: ${{ inputs.min-delay }}
+        MAX_DELAY: ${{ inputs.max-delay }}
+      run: bash "$GITHUB_ACTION_PATH/retry.sh"
