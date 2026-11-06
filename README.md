@@ -22,7 +22,7 @@ jobs:
     if: github.event.pull_request.user.login == 'dependabot[bot]'
     steps:
       # Build and test here
-      - uses: oborodice/dependabot-actions/auto-merge@main
+      - uses: oborodice/dependabot-actions/auto-merge@v1
         with:
           update-types: patch,minor
 ```
@@ -56,7 +56,7 @@ jobs:
     runs-on: ubuntu-latest
     if: github.event.workflow_run.conclusion == 'failure'
     steps:
-      - uses: oborodice/dependabot-actions/retry-auto-merge@main
+      - uses: oborodice/dependabot-actions/retry-auto-merge@v1
 ```
 
 |Input|Default|Description|
@@ -72,4 +72,5 @@ jobs:
 $ mise install
 $ lefthook install
 $ bats test
+$ scripts/release.sh 1.0.0
 ```
