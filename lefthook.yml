@@ -3,6 +3,9 @@ pre-commit:
     action-validator:
       glob: "*/action.yml"
       run: action-validator {staged_files}
+    actionlint:
+      glob: ".github/workflows/*.{yml,yaml}"
+      run: actionlint {staged_files}
     shellcheck:
       glob:
         - "*.{sh,bash}"
