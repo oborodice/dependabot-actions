@@ -1,4 +1,5 @@
 [tools]
 action-validator = "latest"
+bats = "latest"
 lefthook = "latest"
 shellcheck = "latest"

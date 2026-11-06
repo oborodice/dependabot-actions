@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+# Fake gh that records its arguments instead of calling GitHub
+echo "$*" >> "$GH_LOG"
+if [[ -n "$FAKE_GH_FAIL" && "$*" == *"$FAKE_GH_FAIL"* ]]; then
+  echo "fake gh failure" >&2
+  exit 1
+fi
+if [[ "$*" == *"/pulls"* ]]; then
+  echo "${FAKE_OPEN_PULLS:-1}"
+fi

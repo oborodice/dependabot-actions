@@ -4,5 +4,12 @@ pre-commit:
       glob: "*/action.yml"
       run: action-validator {staged_files}
     shellcheck:
-      glob: "*.sh"
+      glob:
+        - "*.{sh,bash}"
+        - "test/bin/*"
       run: shellcheck {staged_files}
+    bats:
+      glob:
+        - "*.{sh,bash,bats}"
+        - "test/bin/*"
+      run: bats test
