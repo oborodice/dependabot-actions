@@ -23,6 +23,3 @@ jobs:
 
       - name: Retry
         uses: ./retry-auto-merge
-        with:
-          min-delay: 10
-          max-delay: 20

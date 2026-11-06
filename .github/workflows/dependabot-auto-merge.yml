@@ -23,10 +23,6 @@ jobs:
           install: true
           cache: true
 
-      - name: Fail the first attempt (temporary)
-        if: github.run_attempt == 1
-        run: exit 1
-
       - name: Run checks
         run: lefthook run pre-commit --all-files
 
