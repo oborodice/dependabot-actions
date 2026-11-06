@@ -5,6 +5,9 @@ if [[ -n "$FAKE_GH_FAIL" && "$*" == *"$FAKE_GH_FAIL"* ]]; then
   echo "fake gh failure" >&2
   exit 1
 fi
+if [[ "$*" == *"/jobs"* ]]; then
+  echo "${FAKE_FAILED_STEPS-Auto-merge}"
+fi
 if [[ "$*" == *"/pulls"* ]]; then
   echo "${FAKE_OPEN_PULLS:-1}"
 fi

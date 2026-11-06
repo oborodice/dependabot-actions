@@ -2,7 +2,7 @@ setup() {
   load test_helper
   export REPO=o/r EVENT_NAME=workflow_run CONCLUSION=failure RUN_ID=42 RUN_ATTEMPT=1
   export HEAD_BRANCH=dependabot/npm_and_yarn/foo-1.2.3
-  export MAX_RETRIES=3 MIN_DELAY=0 MAX_DELAY=0
+  export RETRY_STEPS=Auto-merge MAX_RETRIES=3 MIN_DELAY=0 MAX_DELAY=0
 }
 
 retry() {
@@ -12,8 +12,9 @@ retry() {
 @test "re-runs a failed run while its PR is open" {
   retry
   [ "$status" -eq 0 ]
-  [ "$(sed -n 1p "$GH_LOG")" = "api -X GET repos/o/r/pulls -f head=o:$HEAD_BRANCH -f state=open --jq length" ]
-  [ "$(sed -n 2p "$GH_LOG")" = "api -X POST repos/o/r/actions/runs/42/rerun --silent" ]
+  [ "$(sed -n 1p "$GH_LOG")" = "api repos/o/r/actions/runs/42/attempts/1/jobs --jq .jobs[].steps[]? | select(.conclusion == \"failure\") | .name" ]
+  [ "$(sed -n 2p "$GH_LOG")" = "api -X GET repos/o/r/pulls -f head=o:$HEAD_BRANCH -f state=open --jq length" ]
+  [ "$(sed -n 3p "$GH_LOG")" = "api -X POST repos/o/r/actions/runs/42/rerun --silent" ]
   [[ "$output" == *"Re-ran workflow run 42 after failed attempt 1."* ]]
 }
 
@@ -46,6 +47,27 @@ retry() {
   [ ! -e "$GH_LOG" ]
 }
 
+@test "skips when the failed step is not in retry-steps" {
+  FAKE_FAILED_STEPS="Run clippy" retry
+  [ "$status" -eq 0 ]
+  [ "$output" = "Skipping retry: failed steps 'Run clippy' are not in retry-steps 'Auto-merge'." ]
+  [[ "$(cat "$GH_LOG")" != *"/pulls"* ]]
+  [[ "$(cat "$GH_LOG")" != *"/rerun"* ]]
+}
+
+@test "skips when no step failed" {
+  FAKE_FAILED_STEPS="" retry
+  [ "$status" -eq 0 ]
+  [ "$output" = "Skipping retry: failed steps '' are not in retry-steps 'Auto-merge'." ]
+  [[ "$(cat "$GH_LOG")" != *"/rerun"* ]]
+}
+
+@test "re-runs when any failed step is in retry-steps" {
+  RETRY_STEPS="Set up job , Auto-merge" FAKE_FAILED_STEPS=$'Run clippy\nSet up job' retry
+  [ "$status" -eq 0 ]
+  [[ "$(cat "$GH_LOG")" == *"/rerun"* ]]
+}
+
 @test "skips when the PR is no longer open" {
   FAKE_OPEN_PULLS=0 retry
   [ "$status" -eq 0 ]
@@ -57,6 +79,21 @@ retry() {
   EVENT_NAME=push retry
   [ "$status" -eq 1 ]
   [ "$output" = "::error::This action must be triggered by workflow_run, got 'push'" ]
+}
+
+@test "fails when listing the failed steps fails" {
+  FAKE_GH_FAIL="/jobs" retry
+  [ "$status" -eq 1 ]
+  [[ "$(cat "$GH_LOG")" != *"/rerun"* ]]
+}
+
+@test "fails on empty retry-steps" {
+  for value in "" " , "; do
+    echo "retry-steps: '$value'"
+    RETRY_STEPS=$value retry
+    [ "$status" -eq 1 ]
+    [ "$output" = "::error::retry-steps must not be empty" ]
+  done
 }
 
 @test "fails when checking the PR fails" {

@@ -6,6 +6,10 @@ inputs:
     description: Token used to check the PR and re-run the workflow.
     required: false
     default: ${{ github.token }}
+  retry-steps:
+    description: Comma-separated names of the steps whose failure is worth re-running.
+    required: false
+    default: Auto-merge
   max-retries:
     description: Maximum number of re-runs after the first attempt.
     required: false
@@ -32,6 +36,7 @@ runs:
         RUN_ID: ${{ github.event.workflow_run.id }}
         RUN_ATTEMPT: ${{ github.event.workflow_run.run_attempt }}
         HEAD_BRANCH: ${{ github.event.workflow_run.head_branch }}
+        RETRY_STEPS: ${{ inputs.retry-steps }}
         MAX_RETRIES: ${{ inputs.max-retries }}
         MIN_DELAY: ${{ inputs.min-delay }}
         MAX_DELAY: ${{ inputs.max-delay }}

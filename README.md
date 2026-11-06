@@ -22,7 +22,8 @@ jobs:
     if: github.event.pull_request.user.login == 'dependabot[bot]'
     steps:
       # Build and test here
-      - uses: oborodice/dependabot-actions/auto-merge@v1
+      - name: Auto-merge
+        uses: oborodice/dependabot-actions/auto-merge@v1
         with:
           update-types: patch,minor
 ```
@@ -62,6 +63,7 @@ jobs:
 |Input|Default|Description|
 |:--|:--|:--|
 |`github-token`|`${{ github.token }}`|Token used to check the PR and re-run the workflow|
+|`retry-steps`|`Auto-merge`|Comma-separated names of the steps whose failure is worth re-running|
 |`max-retries`|`3`|Maximum number of re-runs after the first attempt|
 |`min-delay`|`120`|Minimum seconds to wait before re-running|
 |`max-delay`|`300`|Maximum seconds to wait before re-running|

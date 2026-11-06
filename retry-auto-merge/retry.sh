@@ -2,7 +2,7 @@
 set -eo pipefail
 
 # Expects: GH_TOKEN, REPO, EVENT_NAME, CONCLUSION, RUN_ID, RUN_ATTEMPT, HEAD_BRANCH,
-#          MAX_RETRIES, MIN_DELAY, MAX_DELAY
+#          RETRY_STEPS, MAX_RETRIES, MIN_DELAY, MAX_DELAY
 
 require_integer() {
   if [[ ! "$2" =~ ^(0|[1-9][0-9]*)$ ]]; then
@@ -18,6 +18,23 @@ if ((MIN_DELAY > MAX_DELAY)); then
   exit 1
 fi
 
+trim() {
+  local s="${1#"${1%%[![:space:]]*}"}"
+  printf '%s' "${s%"${s##*[![:space:]]}"}"
+}
+allowed_steps=()
+IFS=',' read -ra items <<< "$RETRY_STEPS"
+for item in "${items[@]}"; do
+  item=$(trim "$item")
+  if [[ -n "$item" ]]; then
+    allowed_steps+=("$item")
+  fi
+done
+if [[ ${#allowed_steps[@]} -eq 0 ]]; then
+  echo "::error::retry-steps must not be empty"
+  exit 1
+fi
+
 if [[ "$EVENT_NAME" != "workflow_run" ]]; then
   echo "::error::This action must be triggered by workflow_run, got '$EVENT_NAME'"
   exit 1
@@ -28,6 +45,22 @@ if [[ "$CONCLUSION" != "failure" ]]; then
 fi
 if ((RUN_ATTEMPT > MAX_RETRIES)); then
   echo "Skipping retry: attempt $RUN_ATTEMPT has reached max-retries ($MAX_RETRIES)."
+  exit 0
+fi
+
+# Failures of other steps, such as a broken build, fail the same way on every attempt
+failed_steps=$(gh api "repos/$REPO/actions/runs/$RUN_ID/attempts/$RUN_ATTEMPT/jobs" \
+  --jq '.jobs[].steps[]? | select(.conclusion == "failure") | .name')
+retryable=false
+while IFS= read -r step; do
+  for allowed_step in "${allowed_steps[@]}"; do
+    if [[ "$step" == "$allowed_step" ]]; then
+      retryable=true
+    fi
+  done
+done <<< "$failed_steps"
+if [[ "$retryable" != true ]]; then
+  echo "Skipping retry: failed steps '${failed_steps//$'\n'/, }' are not in retry-steps '$RETRY_STEPS'."
   exit 0
 fi
 
