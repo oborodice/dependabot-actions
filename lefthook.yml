@@ -1,0 +1,8 @@
+pre-commit:
+  commands:
+    action-validator:
+      glob: "*/action.yml"
+      run: action-validator {staged_files}
+    shellcheck:
+      glob: "*.sh"
+      run: shellcheck {staged_files}

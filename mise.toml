@@ -1,0 +1,4 @@
+[tools]
+action-validator = "latest"
+lefthook = "latest"
+shellcheck = "latest"
