@@ -1,0 +1,10 @@
+version: 2
+updates:
+  - package-ecosystem: "github-actions"
+    directories:
+      - "/"
+      - "/auto-merge"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 20
+    rebase-strategy: "auto"

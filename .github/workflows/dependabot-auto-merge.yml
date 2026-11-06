@@ -1,0 +1,31 @@
+name: Dependabot auto-merge
+
+on:
+  pull_request:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  dependabot:
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.user.login == 'dependabot[bot]' && github.repository == 'oborodice/dependabot-actions'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: Setup mise
+        uses: jdx/mise-action@v5
+        with:
+          install: true
+          cache: true
+
+      - name: Run checks
+        run: lefthook run pre-commit --all-files
+
+      # Uses the PR's own version of the action, so an update is verified by merging itself
+      - name: Auto-merge
+        uses: ./auto-merge
