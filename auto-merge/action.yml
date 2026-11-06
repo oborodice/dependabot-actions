@@ -1,0 +1,44 @@
+name: Auto-merge Dependabot PR
+description: Auto-merge a Dependabot PR when its update type is allowed.
+
+inputs:
+  github-token:
+    description: Token used to fetch metadata and merge the PR.
+    required: false
+    default: ${{ github.token }}
+  update-types:
+    description: Comma-separated semver update types to merge (patch, minor, major).
+    required: false
+    default: patch
+  merge-method:
+    description: Merge method (merge, squash or rebase).
+    required: false
+    default: merge
+
+runs:
+  using: composite
+  steps:
+    - name: Check PR author
+      id: author
+      shell: bash
+      env:
+        PR_AUTHOR: ${{ github.event.pull_request.user.login }}
+      run: bash "$GITHUB_ACTION_PATH/check-author.sh"
+
+    - name: Fetch Dependabot metadata
+      id: metadata
+      if: steps.author.outputs.dependabot == 'true'
+      uses: dependabot/fetch-metadata@25dd0e34f4fe68f24cc83900b1fe3fe149efef98 # v3.1.0
+      with:
+        github-token: ${{ inputs.github-token }}
+
+    - name: Auto-merge PR
+      if: steps.author.outputs.dependabot == 'true'
+      shell: bash
+      env:
+        GH_TOKEN: ${{ inputs.github-token }}
+        PR_URL: ${{ github.event.pull_request.html_url }}
+        UPDATE_TYPE: ${{ steps.metadata.outputs.update-type }}
+        UPDATE_TYPES: ${{ inputs.update-types }}
+        MERGE_METHOD: ${{ inputs.merge-method }}
+      run: bash "$GITHUB_ACTION_PATH/merge.sh"
