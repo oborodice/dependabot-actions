@@ -6,11 +6,11 @@ setup() {
 }
 
 check_author() {
-  run bash "$BATS_TEST_DIRNAME/../auto-merge/check-author.sh"
+  run bash "$BATS_TEST_DIRNAME/../check-author.sh"
 }
 
 merge() {
-  run bash "$BATS_TEST_DIRNAME/../auto-merge/merge.sh"
+  run bash "$BATS_TEST_DIRNAME/../merge.sh"
 }
 
 @test "check-author: continues for Dependabot PRs" {
