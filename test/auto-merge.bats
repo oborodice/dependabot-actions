@@ -6,11 +6,11 @@ setup() {
 }
 
 check_author() {
-  run bash "$BATS_TEST_DIRNAME/../auto-merge/check-author.sh"
+  run bash "$BATS_TEST_DIRNAME/../check-author.sh"
 }
 
 merge() {
-  run bash "$BATS_TEST_DIRNAME/../auto-merge/merge.sh"
+  run bash "$BATS_TEST_DIRNAME/../merge.sh"
 }
 
 @test "check-author: continues for Dependabot PRs" {
@@ -34,7 +34,7 @@ merge() {
 @test "merge: merges an allowed update type" {
   merge
   [ "$status" -eq 0 ]
-  [ "$(cat "$GH_LOG")" = "pr merge --auto --merge $PR_URL" ]
+  [ "$(cat "$GH_LOG")" = "pr merge --merge $PR_URL" ]
 }
 
 @test "merge: uses the given merge method" {
@@ -43,13 +43,32 @@ merge() {
     rm -f "$GH_LOG"
     MERGE_METHOD=$method merge
     [ "$status" -eq 0 ]
-    [ "$(cat "$GH_LOG")" = "pr merge --auto --$method $PR_URL" ]
+    [ "$(cat "$GH_LOG")" = "pr merge --$method $PR_URL" ]
   done
 }
 
-@test "merge: fails when gh fails" {
-  FAKE_GH_FAIL="pr merge" merge
+@test "merge: retries after a failed merge" {
+  FAKE_GH_FAILURES=2 merge
+  [ "$status" -eq 0 ]
+  [ "$(wc -l < "$GH_LOG")" -eq 3 ]
+  [ "$(wc -l < "$SLEEP_LOG")" -eq 2 ]
+  [[ "$output" == *"Merge attempt 2 failed. Retrying in "* ]]
+}
+
+@test "merge: waits 10 to 30 seconds between attempts" {
+  FAKE_GH_FAILURES=4 merge
+  [ "$status" -eq 0 ]
+  while read -r delay; do
+    ((delay >= 10 && delay <= 30))
+  done < "$SLEEP_LOG"
+}
+
+@test "merge: fails after 5 failed attempts" {
+  FAKE_GH_FAILURES=5 merge
   [ "$status" -eq 1 ]
+  [ "$(wc -l < "$GH_LOG")" -eq 5 ]
+  [ "$(wc -l < "$SLEEP_LOG")" -eq 4 ]
+  [[ "$output" == *"::error::Failed to merge after 5 attempts"* ]]
 }
 
 @test "merge: accepts spaces and a trailing comma in update-types" {

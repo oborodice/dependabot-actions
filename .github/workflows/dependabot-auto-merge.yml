@@ -10,7 +10,7 @@ permissions:
 jobs:
   dependabot:
     runs-on: ubuntu-latest
-    if: github.event.pull_request.user.login == 'dependabot[bot]' && github.repository == 'oborodice/dependabot-actions'
+    if: github.event.pull_request.user.login == 'dependabot[bot]' && github.repository == 'oborodice/dependabot-auto-merge'
     steps:
       - name: Checkout
         uses: actions/checkout@v7
@@ -28,6 +28,6 @@ jobs:
 
       # Uses the PR's own version of the action, so an update is verified by merging itself
       - name: Auto-merge
-        uses: ./auto-merge
+        uses: ./
         with:
           update-types: patch,minor

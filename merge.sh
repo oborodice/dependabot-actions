@@ -28,11 +28,28 @@ done
 
 # update-type looks like version-update:semver-patch
 type="${UPDATE_TYPE#version-update:semver-}"
+allowed_type=false
 for t in "${allowed[@]}"; do
   if [[ "$t" == "$type" ]]; then
-    gh pr merge --auto "--$MERGE_METHOD" "$PR_URL"
-    exit 0
+    allowed_type=true
+    break
   fi
 done
+if [[ "$allowed_type" != true ]]; then
+  echo "Skipping merge: update type '${type:-unknown}' is not in '$UPDATE_TYPES'."
+  exit 0
+fi
 
-echo "Skipping merge: update type '${type:-unknown}' is not in '$UPDATE_TYPES'."
+# Merging fails with "Base branch was modified" when another Dependabot PR is
+# merged at the same time, so retry after a random delay to spread the runs out
+max_attempts=5
+for ((attempt = 1; ; attempt++)); do
+  gh pr merge "--$MERGE_METHOD" "$PR_URL" && exit 0
+  if ((attempt >= max_attempts)); then
+    echo "::error::Failed to merge after $max_attempts attempts"
+    exit 1
+  fi
+  delay=$((RANDOM % 21 + 10))
+  echo "Merge attempt $attempt failed. Retrying in ${delay}s."
+  sleep "$delay"
+done

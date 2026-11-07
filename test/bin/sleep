@@ -1,0 +1,3 @@
+#!/usr/bin/env bash
+# Fake sleep that records its arguments instead of waiting
+echo "$*" >> "$SLEEP_LOG"
