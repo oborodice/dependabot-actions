@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # Fake gh that records its arguments instead of calling GitHub
 echo "$*" >> "$GH_LOG"
-if [[ -n "$FAKE_GH_FAIL" && "$*" == *"$FAKE_GH_FAIL"* ]]; then
+# Fails the first FAKE_GH_FAILURES calls
+if (($(wc -l < "$GH_LOG") <= ${FAKE_GH_FAILURES:-0})); then
   echo "fake gh failure" >&2
   exit 1
 fi

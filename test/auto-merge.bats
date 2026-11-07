@@ -47,9 +47,28 @@ merge() {
   done
 }
 
-@test "merge: fails when gh fails" {
-  FAKE_GH_FAIL="pr merge" merge
+@test "merge: retries after a failed merge" {
+  FAKE_GH_FAILURES=2 merge
+  [ "$status" -eq 0 ]
+  [ "$(wc -l < "$GH_LOG")" -eq 3 ]
+  [ "$(wc -l < "$SLEEP_LOG")" -eq 2 ]
+  [[ "$output" == *"Merge attempt 2 failed. Retrying in "* ]]
+}
+
+@test "merge: waits 10 to 30 seconds between attempts" {
+  FAKE_GH_FAILURES=4 merge
+  [ "$status" -eq 0 ]
+  while read -r delay; do
+    ((delay >= 10 && delay <= 30))
+  done < "$SLEEP_LOG"
+}
+
+@test "merge: fails after 5 failed attempts" {
+  FAKE_GH_FAILURES=5 merge
   [ "$status" -eq 1 ]
+  [ "$(wc -l < "$GH_LOG")" -eq 5 ]
+  [ "$(wc -l < "$SLEEP_LOG")" -eq 4 ]
+  [[ "$output" == *"::error::Failed to merge after 5 attempts"* ]]
 }
 
 @test "merge: accepts spaces and a trailing comma in update-types" {
