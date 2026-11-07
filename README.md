@@ -1,8 +1,6 @@
 # dependabot-auto-merge
 
-A GitHub Action that merges a Dependabot PR when its semver update type is allowed. Run it after your build and tests.
-
-The merge is retried up to 5 times, because it fails when another PR is merged at the same time.
+GitHub Action for auto-merging Dependabot PRs.
 
 ## Usage
 
@@ -27,7 +25,7 @@ jobs:
           update-types: patch,minor
 ```
 
-## Inputs
+### Inputs
 
 |Input|Default|Description|
 |:--|:--|:--|
