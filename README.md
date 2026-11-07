@@ -4,8 +4,6 @@ GitHub Action for auto-merging Dependabot PRs.
 
 ## Usage
 
-Merges a Dependabot PR when its semver update type is allowed. Run it after your build and tests.
-
 ```yaml
 name: Dependabot auto-merge
 
@@ -27,7 +25,7 @@ jobs:
           update-types: patch,minor
 ```
 
-## Inputs
+### Inputs
 
 |Input|Default|Description|
 |:--|:--|:--|
