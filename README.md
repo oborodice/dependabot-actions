@@ -33,39 +33,6 @@ jobs:
 |`update-types`|`patch`|Comma-separated semver update types to merge (`patch`, `minor`, `major`)|
 |`merge-method`|`merge`|Merge method (`merge`, `squash` or `rebase`)|
 
-## retry-auto-merge
-
-Re-runs a failed auto-merge workflow run while its PR is still open.
-
-```yaml
-name: Retry Dependabot auto-merge
-
-on:
-  workflow_run:
-    workflows:
-      - Dependabot auto-merge
-    types:
-      - completed
-
-permissions:
-  actions: write
-  pull-requests: read
-
-jobs:
-  retry:
-    runs-on: ubuntu-latest
-    if: github.event.workflow_run.conclusion == 'failure'
-    steps:
-      - uses: oborodice/dependabot-actions/retry-auto-merge@v1
-```
-
-|Input|Default|Description|
-|:--|:--|:--|
-|`github-token`|`${{ github.token }}`|Token used to check the PR and re-run the workflow|
-|`max-retries`|`3`|Maximum number of re-runs after the first attempt|
-|`min-delay`|`120`|Minimum seconds to wait before re-running|
-|`max-delay`|`300`|Maximum seconds to wait before re-running|
-
 ## Development
 
 ```console
